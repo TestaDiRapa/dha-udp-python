@@ -1,20 +1,33 @@
 import socket
 
-IP = "127.0.0.1"
-PORT = int(input("Port: "))
+with open("conf.conf") as file:
+    lines = file.readlines()
+    conf = dict()
+    for line in lines:
+        param = line.split(':')
+        conf[param[0]] = param[1][:-1]
 
-choice = input("TCP or UDP? [T/U]: ")
-while choice != "T" and choice != "U":
-    choice = input("TCP or UDP? [T/U]: ")
+IP = conf["ip"]
+PORT = int(conf["port-c"])
+PORT_SERVER = int(conf["port-s"])
+
+choice = conf["type"]
 
 if choice == "T":
+    print("TCP mode")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = int(input("Port to connect?: "))
-    s.connect((IP, port))
+    try:
+        s.connect((IP, PORT_SERVER))
+    except:
+        print("TCP connection error!")
 
 else:
+    print("UDP mode")
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind((IP, PORT))
+    try:
+        s.bind((IP, PORT))
+    except:
+        print("Port already in use!")
 
 while True:
     msg = input("Insert a message: ")
@@ -24,8 +37,7 @@ while True:
         response = s.recv(1024)
 
     else:
-        port = int(input("Insert the port: "))
-        s.sendto(bytes(msg, 'utf-8'), (IP, port))
+        s.sendto(bytes(msg, 'utf-8'), (IP, PORT_SERVER))
         response, address = s.recvfrom(1024)
 
     print("Response: {}".format(response.decode("utf-8")))

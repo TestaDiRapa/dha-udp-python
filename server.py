@@ -25,22 +25,32 @@ def handle_udp(s):
         s.sendto(bytes(msg, "utf-8"), address)
 
 
-IP = "127.0.0.1"
-PORT = int(input("Port: "))
+with open("conf.conf") as file:
+    lines = file.readlines()
+    conf = dict()
+    for line in lines:
+        param = line.split(':')
+        conf[param[0]] = param[1][:-1]
 
-choice = input("TCP or UDP? [T/U]: ")
-while choice != "T" and choice != "U":
-    choice = input("TCP or UDP? [T/U]: ")
+IP = conf["ip"]
+PORT_SERVER = int(conf["port-s"])
+choice = conf["type"]
 
 if choice == "T":
+    print("TCP mode")
     sock_type = socket.SOCK_STREAM
     handler = handle_tcp
 else:
+    print("UDP mode")
     sock_type = socket.SOCK_DGRAM
     handler = handle_udp
 
 s = socket.socket(socket.AF_INET, sock_type)
 
-s.bind((IP, PORT))
+try:
+    s.bind((IP, PORT_SERVER))
+except:
+    print("Bind error!")
+
 handler(s)
 s.close()
